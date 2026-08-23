@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>August SAT Reading & Writing Practice</title>
+<style>
+  :root{
+    --bg:#f5f7fb;
+    --card:#ffffff;
+    --ink:#172033;
+    --muted:#667085;
+    --line:#d9dee8;
+    --accent:#315efb;
+    --good:#16794b;
+    --bad:#b42318;
+    --warn:#9a6700;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+  }
+  .shell{max-width:900px;margin:0 auto;padding:18px}
+  header{
+    display:flex;justify-content:space-between;gap:16px;align-items:flex-start;
+    margin:8px 0 18px;
+  }
+  h1{font-size:clamp(24px,4vw,38px);margin:0 0 5px}
+  .subtitle{color:var(--muted);font-size:14px}
+  .timer{
+    background:#111827;color:#fff;border-radius:14px;padding:10px 14px;
+    font-variant-numeric:tabular-nums;font-weight:700;min-width:105px;text-align:center;
+  }
+  .progress-wrap{margin-bottom:14px}
+  .progress-row{display:flex;justify-content:space-between;color:var(--muted);font-size:13px;margin-bottom:6px}
+  .bar{height:8px;background:#e6eaf1;border-radius:999px;overflow:hidden}
+  .bar > div{height:100%;background:var(--accent);width:0%;transition:.25s}
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:18px;
+    padding:clamp(18px,4vw,34px);box-shadow:0 8px 30px rgba(16,24,40,.06);
+  }
+  .passage{font-family:Georgia,"Times New Roman",serif;font-size:20px;line-height:1.55;margin:0 0 24px}
+  .prompt{font-weight:800;font-size:18px;line-height:1.4;margin:0 0 14px}
+  .choices{display:grid;gap:10px}
+  label.choice{
+    display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);
+    border-radius:12px;padding:13px 14px;cursor:pointer;background:#fff;
+  }
+  label.choice:hover{border-color:#aab4c8}
+  input[type=radio]{margin-top:3px;transform:scale(1.15)}
+  .feedback{margin-top:16px;padding:13px 14px;border-radius:12px;display:none;line-height:1.45}
+  .feedback.bad{display:block;background:#fff1f0;color:var(--bad);border:1px solid #f2b8b5}
+  .feedback.good{display:block;background:#ecfdf3;color:var(--good);border:1px solid #a6e3c5}
+  .feedback.warn{display:block;background:#fff8e6;color:var(--warn);border:1px solid #efd38a}
+  .explanation{
+    margin-top:14px;padding:15px 16px;border-left:4px solid var(--accent);
+    background:#f6f8ff;border-radius:8px;display:none;line-height:1.5
+  }
+  .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;flex-wrap:wrap}
+  button{
+    border:0;border-radius:11px;padding:12px 18px;font-size:16px;font-weight:750;cursor:pointer
+  }
+  button.primary{background:var(--accent);color:#fff}
+  button.secondary{background:#eef1f6;color:#263247}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .report{display:none}
+  table{width:100%;border-collapse:collapse;margin-top:16px;font-size:14px}
+  th,td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+  .pill{display:inline-block;padding:3px 8px;border-radius:999px;font-weight:700;font-size:12px}
+  .pill.good{background:#ecfdf3;color:var(--good)}
+  .pill.bad{background:#fff1f0;color:var(--bad)}
+  .summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}
+  .stat{background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:14px}
+  .stat .n{font-size:26px;font-weight:850}
+  .stat .l{color:var(--muted);font-size:12px;margin-top:3px}
+  @media(max-width:650px){
+    header{align-items:center}
+    .passage{font-size:18px}
+    .summary-grid{grid-template-columns:1fr}
+    table{font-size:12px}
+    th,td{padding:8px 5px}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <div>
+      <h1>SAT Reading & Writing Practice</h1>
+      <div class="subtitle">17 unique questions reconstructed from the screenshots, with markup removed.</div>
+    </div>
+    <div class="timer" id="timer">00:00</div>
+  </header>
+
+  <div id="quiz">
+    <div class="progress-wrap">
+      <div class="progress-row"><span id="progressText">Question 1 of 10</span><span id="attemptText">Attempt 1 of 2</span></div>
+      <div class="bar"><div id="progressBar"></div></div>
+    </div>
+
+    <section class="card">
+      <div class="passage" id="passage"></div>
+      <div class="prompt" id="prompt"></div>
+      <div class="choices" id="choices"></div>
+      <div id="feedback" class="feedback"></div>
+      <div id="explanation" class="explanation"></div>
+      <div class="actions">
+        <button class="primary" id="submitBtn">Submit answer</button>
+        <button class="secondary" id="nextBtn" style="display:none">Next question</button>
+      </div>
+    </section>
+  </div>
+
+  <section class="card report" id="report">
+    <h2 style="margin-top:0">Results</h2>
+    <div class="summary-grid">
+      <div class="stat"><div class="n" id="scoreN">0/10</div><div class="l">Final right</div></div>
+      <div class="stat"><div class="n" id="firstTryN">0/10</div><div class="l">Right on first try</div></div>
+      <div class="stat"><div class="n" id="totalTimeN">0:00</div><div class="l">Total time</div></div>
+    </div>
+    <table>
+      <thead><tr><th>#</th><th>Result</th><th>Attempts</th><th>Time</th><th>Correct answer</th></tr></thead>
+      <tbody id="resultsBody"></tbody>
+    </table>
+    <div class="actions">
+      <button class="secondary" onclick="location.reload()">Restart</button>
+    </div>
+  </section>
+</div>
+
+<script>
+const questions = [
+{
+  passage:`Walter De Maria's Earth Room installations in Germany and New York are notable examples of land art _____ former appearing in Munich and Darmstadt by 1967 and the latter becoming a permanent fixture in Manhattan in the 1980s. The New York Earth Room consists of 280,000 pounds of soil spread across 3,600 square feet of gallery space.`,
+  prompt:`Which choice completes the text so that it conforms to the conventions of Standard English?`,
+  choices:[`sculpture, the`,`sculpture the`,`sculpture. The`,`sculpture, as the`],
+  answer:0,
+  explanation:`The words “the former appearing … and the latter becoming …” form a supplementary phrase describing the two installations. A comma correctly sets that phrase off after “sculpture.” Choice A creates one grammatical sentence without adding an unnecessary conjunction or starting a fragment.`
+},
+{
+  passage:`The Pacific halibut is an ectothermic (cold-blooded) fish, whereas the yellowfin tuna is a regional endotherm; unlike that of ectotherms, its body temperature remains above the ambient water temperature. The basking shark had been classified as a full ectotherm, but researchers Haley R. Dolton et al. found that its body temperature remains 1.0 to 1.5°C above ambient, which is _____ that classification.`,
+  prompt:`Which choice completes the text with the most logical and precise word or phrase?`,
+  choices:[`incongruous with`,`subordinate to`,`opportune for`,`indicative of`],
+  answer:0,
+  explanation:`If the shark’s body temperature stays above ambient, that finding conflicts with the classification of the shark as a full ectotherm. “Incongruous with” means inconsistent or incompatible with, so it is the precise fit.`
+},
+{
+  passage:`The food industry has long used thermal technologies to preserve food in large batches. Recent advancements in infrared heating were made through research in Brazil on the preservation of apples. Infrared heating is generally considered to be an improvement over more conventional thermal preservation methods; whereas conventional methods transfer energy from the surface of food to its interior. Infrared heating uses high-intensity infrared light to generate heat within the food itself, thus reducing industrial cooking time.`,
+  prompt:`What is the function of the final sentence?`,
+  choices:[
+    `It suggests that there are possible flaws in infrared heating technologies that have not yet been well researched.`,
+    `It emphasizes the simplicity of infrared heating technologies.`,
+    `It identifies an advantage that infrared heating has over conventional thermal preservation methods.`,
+    `It explains why conventional heating methods are popular in commercial applications and proposes a shift away from these methods.`
+  ],
+  answer:2,
+  explanation:`The sentence explains that infrared heating generates heat within the food and therefore reduces cooking time. That directly identifies an advantage over conventional methods, so C is the best description of its function.`
+},
+{
+  passage:`LeVon A. Minesuah is a novelist and a citizen of the Choctaw Nation of Oklahoma. Critics and fellow writers have praised her work for combining traditional Choctaw stories with popular genres of literature, such as mystery fiction. But Minesuah is not the only Indigenous writer to blend traditional stories with popular literature. In the 2020 novel The Only Good Indians, Stephen Graham Jones successfully blended the oral storytelling traditions of his tribe, the Blackfeet Nation, with horror fiction.`,
+  prompt:`Which choice best states the main idea of the text?`,
+  choices:[
+    `Recent Indigenous fiction writers are mixing traditional stories with popular literary genres.`,
+    `Several famous Indigenous writers increased their book sales when they began incorporating traditional stories.`,
+    `Non-Indigenous authors should consider the expectations of Indigenous readers.`,
+    `The success of LeVon A. Minesuah has influenced non-Indigenous authors who write in popular literary genres.`
+  ],
+  answer:0,
+  explanation:`Both examples support the same broad point: Indigenous writers are combining traditional storytelling with popular literary genres. The other choices introduce claims about sales, reader expectations, or influence that the passage never makes.`
+},
+{
+  passage:`At Storm King Art Center, an outdoor sculpture park in New York, Alexandre Liberman’s Adonai is exposed to rain, snow, heat, and humidity. _____ it remains in good condition due to its material: Liberman’s sculpture is made of corrosion-resistant steel.`,
+  prompt:`Which choice completes the text with the most logical transition?`,
+  choices:[`As a result,`,`In addition,`,`That said,`,`On the contrary,`],
+  answer:2,
+  explanation:`The first sentence creates an expectation that harsh weather could damage the sculpture; the next sentence qualifies that expectation by saying it remains in good condition. “That said” appropriately signals this concession or qualification.`
+},
+{
+  passage:`Psychologist Lisa K. Son and colleagues presented participants with several series of images of an everyday object, progressing from blurry to clear, and asked participants to identify the object as soon as they confidently could (on average, at image 12 of 15). Participants were then asked to return to each series and recall at which point they were able to identify the image; on average, they selected image 10. This phenomenon—believing that one knew more in the past than one actually did—is known as hindsight bias. When participants were asked to estimate when a peer who had not participated in the experiment would be able to identify the object, the average selection was again image 10. This finding suggests that _____.`,
+  prompt:`Which choice most logically completes the text?`,
+  choices:[
+    `having their own hindsight bias explicitly pointed out to them may not prevent people from applying that same bias to their peers.`,
+    `being implicitly reminded of their earlier state of ignorance may enable people to reduce their hindsight bias.`,
+    `a form of hindsight bias may occur even when it does not directly enable people to exaggerate their own past knowledge.`,
+    `people tend to believe that they are less likely than their peers are to show hindsight bias.`
+  ],
+  answer:2,
+  explanation:`Participants overestimated how early an uninformed peer would recognize the object, even though the estimate was not about their own past knowledge. That supports the broader conclusion in C: hindsight-like bias can appear even when people are not exaggerating their own prior knowledge.`
+},
+{
+  passage:`Vega Pérez-Gracia and colleagues used ground-penetrating radar (GPR) to map moisture infiltration within the walls of the Basilica of Santa Maria del Mar in Barcelona, Spain. The contrast between wet and dry materials produces vivid radar echoes that delineate leak pathways, yet the presence of water-saturated zones also hampers the efficacy of the technique. _____ even as GPR makes such areas conspicuous, water within masonry absorbs and scatters radar energy, often obscuring defects in layers beyond the saturated region.`,
+  prompt:`Which choice completes the text with the most logical transition?`,
+  choices:[`Thus,`,`Nevertheless,`,`Likewise,`,`Indeed,`],
+  answer:3,
+  explanation:`The final sentence explains and reinforces the claim that saturated zones can hamper GPR. “Indeed” is an emphasis/elaboration transition, which fits because the sentence provides the mechanism behind the preceding statement.`
+},
+{
+  passage:`In his 2020 poem “This Town,” Saad Ali contemplates Ivan Aivazovsky's 1859 painting Lunar Night on the Black Sea. Translating the painting's depiction of a seascape into vivid figurative phrases—such as “a dozen sea shells converse”—Ali suggests the fluid interplay of poetry and painting. _____ Ali's poem highlights fundamental tensions between these modes of representation.`,
+  prompt:`Which choice completes the text with the most logical transition?`,
+  choices:[`At the same time,`,`Therefore,`,`Specifically,`,`In other words,`],
+  answer:0,
+  explanation:`The first idea emphasizes interplay between poetry and painting; the next adds a simultaneous but contrasting idea: the poem also highlights tensions between them. “At the same time” best signals that coexistence.`
+},
+{
+  passage:`The following text is adapted from J. M. Barrie’s 1911 novel Peter Pan.\n\n“Children soon know that they will grow up, and the way Wendy knew was this. One day when she was two years old she was playing in a garden, and she plucked another flower and ran with it to her mother. I suppose she must have looked rather delightful, for Mrs. Darling put her hand to her heart and cried, ‘Oh, why can’t you remain like this forever?’ This was all that passed between them on the subject, but henceforth Wendy knew that she must grow up.”`,
+  prompt:`Which choice best describes the overall structure of the text?`,
+  choices:[
+    `It presents a question about Wendy’s behavior and then offers a detailed answer.`,
+    `It makes a prediction about Wendy’s future and then presents a reason for making that prediction.`,
+    `It makes a claim about children and then illustrates it with a description of Wendy’s experience.`,
+    `It states an assumption about children and then considers the ways in which Wendy differs from others.`
+  ],
+  answer:2,
+  explanation:`The passage begins with a general claim—children soon learn they will grow up—then uses Wendy’s childhood experience as an example illustrating that claim. That is exactly the structure described in C.`
+},
+{
+  passage:`In biology there is no single agreed-upon concept of what defines a species; _____ numerous competing species concepts are used within the field, a dilemma known as the species problem. The genotypic cluster species concept, described in 1995 by Mallet, defines species in accordance with genetic similarity, while the general lineage species concept, delineated by Queiroz in 1998, organizes species according to evolutionary lineage.`,
+  prompt:`Which choice completes the text with the most logical transition?`,
+  choices:[`as a result,`,`for instance,`,`in addition,`,`however,`],
+  answer:0,
+  explanation:`Because biologists do not agree on one definition of “species,” multiple competing concepts are used. The second idea is a consequence of the first, so “as a result” is the logical transition.`
+},
+{
+  passage:`Every US state has an associated state soil, which is typically selected by a group of experts, then passed through the state legislature to receive its official designation. For example, Arkansas’s Stuttgart soil was formally designated in 1997, and Maine’s Chesuncook soil in 1999. _____ years pass between a soil’s selection and official designation, as the legislative process can be notoriously slow.`,
+  prompt:`Which choice completes the text with the most logical transition?`,
+  choices:[`In many cases,`,`Therefore,`,`Similarly,`,`Indeed,`],
+  answer:0,
+  explanation:`The final sentence introduces a general circumstance that occurs frequently: the legislative process can take years. “In many cases” accurately signals that this is a common situation. “Therefore” would imply that the examples themselves cause the delay, while “Similarly” and “Indeed” do not fit the relationship as precisely.`
+},
+{
+  passage:`In Annie Dillard's Pilgrim at Tinker Creek—where, early on, the author marvels at a single goldfish's delicate fins but later winces when imagining a horde of goldfish laying and eating their own eggs—Dillard struggles to reconcile the complicated juxtapositions of the natural world. _____ nature's mesmerizing intricacy and pitiless harshness prove inextricably linked for Dillard, like “two branches of the same creek.”`,
+  prompt:`Which choice completes the text with the most logical transition?`,
+  choices:[`Ultimately,`,`To that end,`,`Hence,`,`Moreover,`],
+  answer:0,
+  explanation:`The second sentence gives Dillard’s eventual conclusion about the tension described in the first: beauty and harshness are inseparably connected. “Ultimately” signals that culminating judgment.`
+},
+{
+  passage:`The following text is adapted from Rupa Bajwa's 2004 novel The Sari Shop.\n\nRamchand works as an assistant in a shop in Amritsar, India. Even late in the morning, the bazaar was throbbing with activity. The hawai-[baker] was already installed in front of the Mishthan Sweet Shop, pressing jalebi batter into squiggly shapes that floated and simmered in the oil in a big iron cauldron. All the shops had opened for the day and Ramchand noted guiltily, all the shop assistants were already in place, lining the windows with fixed attentive smiles on their shiny, bathed faces.`,
+  prompt:`Based on the text, what can most reasonably be inferred about Ramchand?`,
+  choices:[
+    `Ramchand is overwhelmed by a bazaar after seeing the chaos of other shop assistants selling goods.`,
+    `Ramchand is enthusiastic about being at work after seeing shop assistants who are excited about their jobs.`,
+    `Ramchand is remorseful about arriving to work later than other shop assistants he sees.`,
+    `Ramchand is fascinated by frying jalebi batter while wandering to work as a shop assistant.`
+  ],
+  answer:2,
+  explanation:`The key word is “guiltily.” Ramchand notices that the other shop assistants are already in place while he is still arriving. That most strongly supports the inference that he feels bad about being later than they are.`
+},
+{
+  passage:`Researchers' attempts to reintroduce the extinct toromiro tree to the Pacific island of Rapa Nui faced repeated failures despite the use of healthy seedlings and carefully chosen locations. _____, the researchers discovered that bacteria that the toromiro relied on to add nitrogen to the soil had also gone extinct, meaning that successful restoration would require reintroducing both the tree and its essential bacterial partners.`,
+  prompt:`Which choice completes the text with the most logical transition?`,
+  choices:[`Most notably among these efforts,`,`Similar to this project,`,`Upon closer investigation,`,`Despite these failures,`],
+  answer:2,
+  explanation:`The second sentence reports what researchers learned after examining the failed restoration attempts more carefully. “Upon closer investigation” precisely describes that sequence.`
+},
+{
+  passage:`Drought avoidance mechanisms—morphological adaptations that plants undergo when exposed to drought conditions—take a variety of forms. The soybean plant elongates its primary root to increase _____ in the rosemary plant, drought triggers a decrease in the plant's stalk length that limits water loss.`,
+  prompt:`Which choice completes the text so that it conforms to the conventions of Standard English?`,
+  choices:[
+    `uptake, for instance, while`,
+    `uptake; for instance,`,
+    `uptake. For instance, while`,
+    `uptake, for instance,`
+  ],
+  answer:0,
+  explanation:`The sentence contrasts two examples of drought adaptations: the soybean increases water uptake, while rosemary reduces stalk length. “For instance” is a removable interrupter, so commas set it off, and “while” correctly links the contrasting clauses.`
+},
+{
+  passage:`While researching a topic, a student has taken the following notes:\n\n• The Shinkansen, commonly known as the bullet train, is a network of high-speed railways in Japan.\n• 1960s: The train's high speeds created intense pressure waves that produced sonic booms when the trains exited tunnels.\n• 1980s: Engineer Eiji Nakatsu noted that the kingfisher bird could dive into water at high speeds while barely creating a splash.\n• The kingfisher's beak gradually widens from tip to head, allowing the bird to transition smoothly between air and water.\n• Nakatsu and other engineers redesigned the train nose based on the kingfisher's beak structure to improve the train's transition between tunnel and open-air environments.\n• The redesign reduced pressure buildup, eliminating sonic booms.`,
+  prompt:`The student wants to explain how the kingfisher's beak structure was used to solve the bullet train's sonic boom problem. Which choice most effectively uses relevant information from the notes to accomplish this goal?`,
+  choices:[
+    `Nakatsu discovered that the kingfisher's beak structure eliminated sonic booms, and the redesign improved the train's transition between tunnel and open-air environments.`,
+    `Nakatsu's observation of kingfishers diving into water showed how the bird's beak structure could help the train eliminate sonic booms.`,
+    `By redesigning the train's nose to imitate the kingfisher's gradually widening beak shape, engineers improved the train's transition between tunnels and open air, eliminating sonic booms.`,
+    `The shape of the kingfisher's beak inspired engineers to reshape the train nose into one that gradually widens, allowing the train to move smoothly between air and water.`
+  ],
+  answer:2,
+  explanation:`Choice C directly connects all three relevant pieces: the beak’s gradually widening shape, the redesign of the train nose, and the resulting elimination of sonic booms. The other choices omit a key causal detail or incorrectly say the train moves between air and water.`
+},
+{
+  passage:`High-reward flowers that produce relatively high volumes of nectar are thought to be especially attractive to long-billed hermits and other hummingbird species. But when Maria A. Maglianesi and a team monitored hummingbird visits to flowering plants, including Heliconia irrasa, at Los Cusingos Bird Sanctuary and other sites in Costa Rica, they found that visit frequencies weren't influenced by nectar traits. Rather, physical compatibility of flower corollas (collections of petals) and hummingbird bills more strongly predicted hummingbird-plant interaction patterns.`,
+  prompt:`Which statement about hummingbird preferences is most strongly supported by the text?`,
+  choices:[
+    `Hummingbirds consistently prefer plant species whose flowers have physical traits that are compatible with their bills but offer relatively low nectar rewards.`,
+    `A floral trait found to influence which plant species hummingbirds prefer may result in certain hummingbird species visiting flowers with relatively low nectar rewards over those with higher nectar rewards.`,
+    `Hummingbirds’ preferences are primarily driven by trait-matching between their bills and flower corollas, though nectar qualities are a secondary factor driving their preferences.`,
+    `Physical compatibility between flower corollas and hummingbird bills becomes an important factor that influences hummingbird preferences when hummingbirds are uncertain about which plants produce high-reward nectar.`
+  ],
+  answer:1,
+  explanation:`The study found that nectar traits did not predict visit frequency, while physical compatibility did. Therefore, a hummingbird may prefer a physically compatible flower even if it offers less nectar than another flower. Choice B states that cautious inference without adding unsupported claims.`
+}
+];
+
+let index = 0;
+let attempt = 1;
+let resolved = false;
+let qStart = performance.now();
+let timerId = null;
+const results = [];
+
+const $ = id => document.getElementById(id);
+
+function fmt(sec){
+  sec = Math.max(0, Math.round(sec));
+  const m = Math.floor(sec/60);
+  const s = sec%60;
+  return `${m}:${String(s).padStart(2,'0')}`;
+}
+
+function updateTimer(){
+  const elapsed = (performance.now() - qStart)/1000;
+  $('timer').textContent = fmt(elapsed);
+}
+
+function startTimer(){
+  clearInterval(timerId);
+  qStart = performance.now();
+  $('timer').textContent = '0:00';
+  timerId = setInterval(updateTimer, 250);
+}
+
+function render(){
+  const q = questions[index];
+  attempt = 1;
+  resolved = false;
+  $('passage').innerHTML = q.passage.replace(/\n/g,'<br>');
+  $('prompt').textContent = q.prompt;
+  $('choices').innerHTML = q.choices.map((c,i)=>`
+    <label class="choice">
+      <input type="radio" name="choice" value="${i}">
+      <span><strong>${String.fromCharCode(65+i)}.</strong> ${c}</span>
+    </label>`).join('');
+  $('feedback').className='feedback';
+  $('feedback').style.display='none';
+  $('feedback').textContent='';
+  $('explanation').style.display='none';
+  $('explanation').textContent='';
+  $('submitBtn').style.display='inline-block';
+  $('nextBtn').style.display='none';
+  $('attemptText').textContent='Attempt 1 of 2';
+  $('progressText').textContent=`Question ${index+1} of ${questions.length}`;
+  $('progressBar').style.width=`${(index/questions.length)*100}%`;
+  startTimer();
+}
+
+function selectedValue(){
+  const sel = document.querySelector('input[name=choice]:checked');
+  return sel ? Number(sel.value) : null;
+}
+
+function lockChoices(){
+  document.querySelectorAll('input[name=choice]').forEach(x=>x.disabled=true);
+}
+
+function resolveQuestion(isCorrect, selected){
+  resolved = true;
+  clearInterval(timerId);
+  const seconds = (performance.now()-qStart)/1000;
+  const q = questions[index];
+
+  lockChoices();
+  $('submitBtn').style.display='none';
+  $('nextBtn').style.display='inline-block';
+  $('nextBtn').textContent = index === questions.length-1 ? 'View results' : 'Next question';
+
+  $('feedback').className = `feedback ${isCorrect ? 'good':'bad'}`;
+  $('feedback').style.display='block';
+  $('feedback').innerHTML = isCorrect
+    ? `<strong>Correct.</strong> ${attempt===1 ? 'You got it on the first try.' : 'You got it on the second try.'}`
+    : `<strong>Incorrect.</strong> The correct answer is ${String.fromCharCode(65+q.answer)}.`;
+
+  $('explanation').style.display='block';
+  $('explanation').innerHTML = `<strong>Explanation:</strong> ${q.explanation}`;
+
+  results.push({
+    number:index+1,
+    correct:isCorrect,
+    attempts:attempt,
+    firstTryCorrect:isCorrect && attempt===1,
+    seconds,
+    answer:String.fromCharCode(65+q.answer)
+  });
+}
+
+$('submitBtn').addEventListener('click', ()=>{
+  const selected = selectedValue();
+  if(selected===null){
+    $('feedback').className='feedback warn';
+    $('feedback').style.display='block';
+    $('feedback').textContent='Choose an answer before submitting.';
+    return;
+  }
+  const q = questions[index];
+  if(selected===q.answer){
+    resolveQuestion(true, selected);
+    return;
+  }
+
+  if(attempt===1){
+    attempt=2;
+    $('attemptText').textContent='Attempt 2 of 2';
+    $('feedback').className='feedback bad';
+    $('feedback').style.display='block';
+    $('feedback').innerHTML='<strong>That’s not correct.</strong> You have one more chance. Reconsider the passage and try again.';
+    // clear selection so the second choice is deliberate
+    document.querySelectorAll('input[name=choice]').forEach(x=>x.checked=false);
+  } else {
+    resolveQuestion(false, selected);
+  }
+});
+
+$('nextBtn').addEventListener('click', ()=>{
+  if(index < questions.length-1){
+    index++;
+    render();
+  } else {
+    showReport();
+  }
+});
+
+function showReport(){
+  clearInterval(timerId);
+  $('quiz').style.display='none';
+  $('report').style.display='block';
+  $('timer').style.display='none';
+
+  const finalRight = results.filter(r=>r.correct).length;
+  const firstTry = results.filter(r=>r.firstTryCorrect).length;
+  const total = results.reduce((a,r)=>a+r.seconds,0);
+
+  $('scoreN').textContent=`${finalRight}/${questions.length}`;
+  $('firstTryN').textContent=`${firstTry}/${questions.length}`;
+  $('totalTimeN').textContent=fmt(total);
+  $('resultsBody').innerHTML = results.map(r=>`
+    <tr>
+      <td>${r.number}</td>
+      <td><span class="pill ${r.correct?'good':'bad'}">${r.correct?'Right':'Wrong'}</span></td>
+      <td>${r.attempts}</td>
+      <td>${fmt(r.seconds)}</td>
+      <td>${r.answer}</td>
+    </tr>`).join('');
+}
+
+render();
+</script>
+</body>
+</html>
